@@ -1,0 +1,112 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Helvetica Neue', sans-serif;
+  background: url('/static/images/background.jpg') no-repeat center center fixed;
+  background-size: cover;
+  color: white;
+  position: relative;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: rgba(0,0,0,0.3);
+  z-index: 1;
+}
+
+.top-bar {
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 1rem;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.top-bar h1 {
+  color: white;
+  margin: 0;
+  font-size: 2rem;
+}
+
+.hero {
+  text-align: center;
+  padding: 12vh 2rem;
+  position: relative;
+  z-index: 2;
+  animation: fadeIn 1.5s ease-in;
+}
+
+.hero h2 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.hero p {
+  font-size: 1.3rem;
+  margin-bottom: 2rem;
+}
+
+.form-section {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 2rem;
+  border-radius: 20px;
+  display: inline-block;
+  margin-top: 2rem;
+}
+
+.form-section label {
+  display: block;
+  margin: 0.5rem 0;
+  color: white;
+  font-size: 1rem;
+}
+
+.signup-btn {
+  display: inline-block;
+  background-color: #ff3366;
+  color: white;
+  padding: 0.8rem 2rem;
+  border: none;
+  border-radius: 30px;
+  font-size: 1rem;
+  font-weight: bold;
+  text-decoration: none;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+
+.signup-btn:hover {
+  background-color: #ff6699;
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(255, 51, 102, 0.5);
+}
+
+.trust-badges {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 8vh;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 1rem 2rem;
+  border-radius: 15px;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.badge {
+  font-size: 1rem;
+  font-weight: 500;
+  color: white;
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
