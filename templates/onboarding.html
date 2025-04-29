@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Matching Blind - Onboarding</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">💬 AI Dating Coach</div>
+        <div class="chat-box" id="chatBox">
+            <div class="message bot">Hi there! 👋 I'm your AI Dating Coach. Let’s get to know you better.</div>
+        </div>
+
+        <div class="chat-input-container">
+            <input type="text" id="user-input" placeholder="Type your answer..." />
+            <button onclick="submitAnswer()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            "What’s your name?",
+            "What are you looking for in a match?",
+            "What’s something you love doing in your free time?",
+            "Describe your ideal first date.",
+            "Last question – what makes you smile?"
+        ];
+        let currentQuestion = 0;
+        const responses = [];
+
+        function scrollToBottom() {
+            const box = document.getElementById("chatBox");
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function showTypingEffect(callback) {
+            const chatBox = document.getElementById("chatBox");
+            const typingMsg = document.createElement("div");
+            typingMsg.className = "message bot typing";
+            typingMsg.id = "typing";
+            typingMsg.innerText = "Typing...";
+            chatBox.appendChild(typingMsg);
+            scrollToBottom();
+
+            setTimeout(() => {
+                typingMsg.remove();
+                callback();
+            }, 1000 + Math.random() * 1000); // Random typing delay
+        }
+
+        function submitAnswer() {
+            const input = document.getElementById("user-input");
+            const answer = input.value.trim();
+            if (answer === "") return;
+
+            const userMsg = document.createElement("div");
+            userMsg.className = "message user";
+            userMsg.innerText = answer;
+            document.getElementById("chatBox").appendChild(userMsg);
+
+            responses.push({ question: questions[currentQuestion], answer });
+            currentQuestion++;
+            input.value = "";
+
+            if (currentQuestion < questions.length) {
+                showTypingEffect(() => {
+                    const botMsg = document.createElement("div");
+                    botMsg.className = "message bot";
+                    botMsg.innerText = questions[currentQuestion];
+                    document.getElementById("chatBox").appendChild(botMsg);
+                    scrollToBottom();
+                });
+            } else {
+                showTypingEffect(() => {
+                    const doneMsg = document.createElement("div");
+                    doneMsg.className = "message bot";
+                    doneMsg.innerText = "Thanks for sharing! 🎉 Your journey starts now.";
+                    document.getElementById("chatBox").appendChild(doneMsg);
+                    document.querySelector(".chat-input-container").style.display = "none";
+                    scrollToBottom();
+                });
+            }
+        }
+
+        window.onload = () => {
+            const firstMsg = document.createElement("div");
+            firstMsg.className = "message bot";
+            firstMsg.innerText = questions[currentQuestion];
+            document.getElementById("chatBox").appendChild(firstMsg);
+        };
+    </script>
+</body>
+</html>
