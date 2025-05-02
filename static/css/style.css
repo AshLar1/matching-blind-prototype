@@ -198,3 +198,21 @@ body {
 .input-area button:hover {
   background-color: #ff6699;
 }
+
+.skip-btn { 
+  margin-left: 10px;
+  padding: 0.6rem 1.2rem;
+  background-color: transparent;
+  color: #ccc;
+  border: 2px solid #ccc;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.skip-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-color: white;
+}

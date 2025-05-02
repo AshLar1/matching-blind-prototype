@@ -1,94 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Matching Blind - Onboarding</title>
-    <link rel="stylesheet" href="/static/css/style.css">
+  <meta charset="UTF-8">
+  <title>Matching Blind - Onboarding</title>
+  <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-    <div class="chat-container">
-        <div class="chat-header">💬 AI Dating Coach</div>
-        <div class="chat-box" id="chatBox">
-            <div class="message bot">Hi there! 👋 I'm your AI Dating Coach. Let’s get to know you better.</div>
-        </div>
+  <div class="chat-container">
+    <div class="chat-header">💬 AI Dating Coach</div>
+    <div class="chat-box" id="chatBox"></div>
 
-        <div class="chat-input-container">
-            <input type="text" id="user-input" placeholder="Type your answer..." />
-            <button onclick="submitAnswer()">Send</button>
-        </div>
+    <div class="chat-input-container">
+      <input type="text" id="user-input" placeholder="Type your answer..." />
+      <button onclick="submitAnswer()">Send</button>
+      <button class="skip-btn" onclick="skipOnboarding()">Skip</button>
     </div>
+  </div>
 
-    <script>
-        const questions = [
-            "What’s your name?",
-            "What are you looking for in a match?",
-            "What’s something you love doing in your free time?",
-            "Describe your ideal first date.",
-            "Last question – what makes you smile?"
-        ];
-        let currentQuestion = 0;
-        const responses = [];
+  <script>
+    const chatBox = document.getElementById("chatBox");
+    const input = document.getElementById("user-input");
 
-        function scrollToBottom() {
-            const box = document.getElementById("chatBox");
-            box.scrollTop = box.scrollHeight;
+    let messages = [
+      {
+        role: "system",
+        content: "You're Matchie, a warm, flirty AI dating coach. Start with one friendly question, then guide the user through 5–7 quick-fire questions to learn their key interests, personality traits, dating goals, messaging style, and what they look for in a partner. After getting a basic answer on any one topic, move on. Don't ask multiple follow-ups or go deep on one subject (e.g., travel or food). Don't repeat the user's name or recap past answers. Keep responses natural, light, and brief—like a friend would. Once you’ve gathered enough info, wrap up by saying: 'Amazing! I’ve got everything I need 💘 Let’s find your best matches…' and stop replying after that."
+      },
+      {
+        role: "assistant",
+        content: "Hey there! I'm Matchie, your friendly AI Dating Coach! I'd love to help you find your perfect match. Tell me your name and a bit about yourself—what are some of your interests and what qualities are you looking for in a partner? 💬💕"
+      }
+    ];
+
+    window.onload = () => {
+      appendMessage("bot", messages[1].content);
+      input.focus();
+    };
+
+    function submitAnswer() {
+      const userText = input.value.trim();
+      if (!userText) return;
+
+      appendMessage("user", userText);
+      messages.push({ role: "user", content: userText });
+      input.value = "";
+
+      showTyping();
+
+      fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages })
+      })
+      .then(res => res.json())
+      .then(data => {
+        removeTyping();
+        const reply = data.reply;
+        appendMessage("bot", reply);
+        messages.push({ role: "assistant", content: reply });
+
+        if (reply.includes("Let’s find your best matches")) {
+          setTimeout(() => {
+            window.location.href = "/app";
+          }, 3000);
         }
+      })
+      .catch(err => {
+        removeTyping();
+        appendMessage("bot", "Oops! Something went wrong. Please try again.");
+        console.error(err);
+      });
+    }
 
-        function showTypingEffect(callback) {
-            const chatBox = document.getElementById("chatBox");
-            const typingMsg = document.createElement("div");
-            typingMsg.className = "message bot typing";
-            typingMsg.id = "typing";
-            typingMsg.innerText = "Typing...";
-            chatBox.appendChild(typingMsg);
-            scrollToBottom();
+    function appendMessage(role, text) {
+      const msg = document.createElement("div");
+      msg.className = `message ${role}`;
+      msg.innerText = text;
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
 
-            setTimeout(() => {
-                typingMsg.remove();
-                callback();
-            }, 1000 + Math.random() * 1000); // Random typing delay
-        }
+    function showTyping() {
+      const typing = document.createElement("div");
+      typing.id = "typing";
+      typing.className = "message bot";
+      typing.innerText = "Typing...";
+      chatBox.appendChild(typing);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
 
-        function submitAnswer() {
-            const input = document.getElementById("user-input");
-            const answer = input.value.trim();
-            if (answer === "") return;
+    function removeTyping() {
+      const typing = document.getElementById("typing");
+      if (typing) typing.remove();
+    }
 
-            const userMsg = document.createElement("div");
-            userMsg.className = "message user";
-            userMsg.innerText = answer;
-            document.getElementById("chatBox").appendChild(userMsg);
+    function skipOnboarding() {
+      window.location.href = "/app";
+    }
 
-            responses.push({ question: questions[currentQuestion], answer });
-            currentQuestion++;
-            input.value = "";
-
-            if (currentQuestion < questions.length) {
-                showTypingEffect(() => {
-                    const botMsg = document.createElement("div");
-                    botMsg.className = "message bot";
-                    botMsg.innerText = questions[currentQuestion];
-                    document.getElementById("chatBox").appendChild(botMsg);
-                    scrollToBottom();
-                });
-            } else {
-                showTypingEffect(() => {
-                    const doneMsg = document.createElement("div");
-                    doneMsg.className = "message bot";
-                    doneMsg.innerText = "Thanks for sharing! 🎉 Your journey starts now.";
-                    document.getElementById("chatBox").appendChild(doneMsg);
-                    document.querySelector(".chat-input-container").style.display = "none";
-                    scrollToBottom();
-                });
-            }
-        }
-
-        window.onload = () => {
-            const firstMsg = document.createElement("div");
-            firstMsg.className = "message bot";
-            firstMsg.innerText = questions[currentQuestion];
-            document.getElementById("chatBox").appendChild(firstMsg);
-        };
-    </script>
+    input.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        submitAnswer();
+      }
+    });
+  </script>
 </body>
 </html>
