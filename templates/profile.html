@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Match Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="profile-container">
+        <div class="profile-card">
+            <h2>💖 Your Match Profile</h2>
+
+            <!-- Profile View -->
+            <div id="profileView" style="display: block;">
+                {% if user.image_url and user.image_url != 'Not specified' %}
+                    <img src="{{ user.image_url }}" alt="Profile Image" class="profile-pic">
+                {% endif %}
+
+                <p><strong>Name:</strong> {{ user.name }}</p>
+                <p><strong>Interests:</strong> {{ user.interests }}</p>
+                <p><strong>Traits:</strong> {{ user.traits }}</p>
+                <p><strong>Goals:</strong> {{ user.goals }}</p>
+                <p><strong>Messaging Style:</strong> {{ user.messaging }}</p>
+                <p><strong>Looking for in a Partner:</strong> {{ user.what_they_want }}</p>
+                <p><strong>Location:</strong> {{ user.location }}</p>
+                <p><strong>Gender:</strong> {{ user.gender }}</p>
+
+                <button class="btn btn-pink" onclick="toggleEdit(true)">Edit Profile</button>
+                <a href="{{ url_for('app_page') }}" class="btn btn-secondary">Back to Home</a>
+            </div>
+
+            <!-- Edit Form -->
+            <form id="editForm" action="{{ url_for('edit_profile') }}" method="POST" enctype="multipart/form-data" style="display: none;">
+                <input type="text" name="name" placeholder="Name" value="{{ user.name }}">
+                <input type="text" name="interests" placeholder="Interests" value="{{ user.interests }}">
+                <input type="text" name="traits" placeholder="Traits" value="{{ user.traits }}">
+                <input type="text" name="goals" placeholder="Goals" value="{{ user.goals }}">
+                <input type="text" name="messaging" placeholder="Messaging Style" value="{{ user.messaging }}">
+                <input type="text" name="what_they_want" placeholder="Looking for in a Partner" value="{{ user.what_they_want }}">
+                <input type="text" name="location" placeholder="Location" value="{{ user.location }}">
+                <select name="gender">
+                    <option value="">Select</option>
+                    <option value="Male" {% if user.gender == 'Male' %}selected{% endif %}>Male</option>
+                    <option value="Female" {% if user.gender == 'Female' %}selected{% endif %}>Female</option>
+                    <option value="Other" {% if user.gender == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+                <label>Upload Profile Image</label>
+                <input type="file" name="image_file">
+
+                <button type="submit" class="btn btn-pink">Save</button>
+                <button type="button" class="btn btn-secondary" onclick="toggleEdit(false)">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function toggleEdit(showForm) {
+            document.getElementById('editForm').style.display = showForm ? 'block' : 'none';
+            document.getElementById('profileView').style.display = showForm ? 'none' : 'block';
+        }
+    </script>
+</body>
+</html>
