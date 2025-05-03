@@ -14,16 +14,33 @@
             <div id="profileView" style="display: block;">
                 {% if user.image_url and user.image_url != 'Not specified' %}
                     <img src="{{ user.image_url }}" alt="Profile Image" class="profile-pic">
+                {% else %}
+                    <img src="{{ url_for('static', filename='images/avatar.png') }}" alt="Default Avatar" class="profile-pic">
                 {% endif %}
 
                 <p><strong>Name:</strong> {{ user.name }}</p>
-                <p><strong>Interests:</strong> {{ user.interests }}</p>
-                <p><strong>Traits:</strong> {{ user.traits }}</p>
-                <p><strong>Goals:</strong> {{ user.goals }}</p>
+                <p><strong>Interests:</strong> {{ user.interests | join(', ') if user.interests is iterable and not user.interests is string else user.interests }}</p>
+                <p><strong>Traits:</strong> {{ user.traits | join(', ') if user.traits is iterable and not user.traits is string else user.traits }}</p>
+                <p><strong>Goals:</strong> {{ user.goals | join(', ') if user.goals is iterable and not user.goals is string else user.goals }}</p>
                 <p><strong>Messaging Style:</strong> {{ user.messaging }}</p>
                 <p><strong>Looking for in a Partner:</strong> {{ user.what_they_want }}</p>
                 <p><strong>Location:</strong> {{ user.location }}</p>
                 <p><strong>Gender:</strong> {{ user.gender }}</p>
+
+                {% if user.gallery %}
+                    <h4>📸 Your Gallery</h4>
+                    <div class="gallery">
+                        {% for img in user.gallery %}
+                            <div class="gallery-item">
+                                <img src="{{ img }}" alt="Gallery Image">
+                                <form action="{{ url_for('remove_gallery_image') }}" method="POST" class="delete-form">
+                                    <input type="hidden" name="image_url" value="{{ img }}">
+                                    <button type="submit" class="remove-btn">✖</button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
 
                 <button class="btn btn-pink" onclick="toggleEdit(true)">Edit Profile</button>
                 <a href="{{ url_for('app_page') }}" class="btn btn-secondary">Back to Home</a>
@@ -38,14 +55,19 @@
                 <input type="text" name="messaging" placeholder="Messaging Style" value="{{ user.messaging }}">
                 <input type="text" name="what_they_want" placeholder="Looking for in a Partner" value="{{ user.what_they_want }}">
                 <input type="text" name="location" placeholder="Location" value="{{ user.location }}">
+
                 <select name="gender">
                     <option value="">Select</option>
                     <option value="Male" {% if user.gender == 'Male' %}selected{% endif %}>Male</option>
                     <option value="Female" {% if user.gender == 'Female' %}selected{% endif %}>Female</option>
                     <option value="Other" {% if user.gender == 'Other' %}selected{% endif %}>Other</option>
                 </select>
+
                 <label>Upload Profile Image</label>
-                <input type="file" name="image_file">
+                <input type="file" name="image_file" accept="image/*">
+
+                <label>Upload Gallery Photos (Max 10)</label>
+                <input type="file" name="gallery_files" multiple accept="image/*">
 
                 <button type="submit" class="btn btn-pink">Save</button>
                 <button type="button" class="btn btn-secondary" onclick="toggleEdit(false)">Cancel</button>

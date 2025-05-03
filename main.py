@@ -38,45 +38,79 @@ def profile():
 
 @app.route('/edit_profile', methods=['POST'])
 def edit_profile():
-    if db.all():
-        user = db.all()[-1]
-        doc_id = user.doc_id
+    if not db.all():
+        return redirect(url_for('profile'))
 
-        updated_data = {
-            'name': request.form.get('name', user.get('name',
-                                                      'Not specified')),
-            'interests': request.form.get('interests', 'Not specified'),
-            'traits': request.form.get('traits', 'Not specified'),
-            'goals': request.form.get('goals', 'Not specified'),
-            'messaging': request.form.get('messaging', 'Not specified'),
-            'what_they_want': request.form.get('what_they_want',
-                                               'Not specified'),
-            'location': request.form.get('location', 'Not specified'),
-            'gender': request.form.get('gender', 'Not specified')
-        }
+    user = db.all()[-1]
+    doc_id = user.doc_id
 
-        # Handle profile image upload
-        image_file = request.files.get('image_file')
-        if image_file and image_file.filename:
-            filename = secure_filename(image_file.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            image_file.save(filepath)
-            updated_data['image_url'] = f"/static/uploads/{filename}"
-        else:
-            updated_data['image_url'] = user.get('image_url', 'Not specified')
+    updated_data = {
+        'name': request.form.get('name', user.get('name', 'Not specified')),
+        'interests': request.form.get('interests', 'Not specified'),
+        'traits': request.form.get('traits', 'Not specified'),
+        'goals': request.form.get('goals', 'Not specified'),
+        'messaging': request.form.get('messaging', 'Not specified'),
+        'what_they_want': request.form.get('what_they_want', 'Not specified'),
+        'location': request.form.get('location', 'Not specified'),
+        'gender': request.form.get('gender', 'Not specified'),
+        'gallery': user.get('gallery', [])
+    }
 
-        # Clean list formatting (if user typed in brackets/lists accidentally)
-        for key in ['interests', 'traits', 'goals']:
-            val = updated_data.get(key, '')
-            if val.startswith("[") and val.endswith("]"):
-                try:
-                    parsed = json.loads(val.replace("'", '"'))
-                    if isinstance(parsed, list):
-                        updated_data[key] = ', '.join(parsed[:5])
-                except:
-                    pass
+    # Handle profile image upload
+    image_file = request.files.get('image_file')
+    if image_file and image_file.filename:
+        filename = secure_filename(
+            str(uuid.uuid4()) + "_" + image_file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        image_file.save(filepath)
+        updated_data['image_url'] = f"/static/uploads/{filename}"
+    else:
+        updated_data['image_url'] = user.get('image_url', 'Not specified')
 
-        db.update(updated_data, doc_ids=[doc_id])
+    # Handle gallery uploads (limit to 10)
+    gallery_files = request.files.getlist('gallery_files')
+    for file in gallery_files:
+        if file and file.filename and len(updated_data['gallery']) < 10:
+            filename = secure_filename(str(uuid.uuid4()) + "_" + file.filename)
+            path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(path)
+            updated_data['gallery'].append(f"/static/uploads/{filename}")
+
+    # Clean any stringified lists
+    for key in ['interests', 'traits', 'goals']:
+        val = updated_data.get(key, '')
+        if val.startswith('[') and val.endswith(']'):
+            try:
+                parsed = json.loads(val.replace("'", '"'))
+                if isinstance(parsed, list):
+                    updated_data[key] = ', '.join(parsed[:5])
+            except:
+                pass
+
+    db.update(updated_data, doc_ids=[doc_id])
+    return redirect(url_for('profile'))
+
+
+@app.route('/remove_gallery_image', methods=['POST'])
+def remove_gallery_image():
+    image_url = request.form.get('image_url')
+    if not image_url or not db.all():
+        return redirect(url_for('profile'))
+
+    user = db.all()[-1]
+    doc_id = user.doc_id
+    gallery = user.get('gallery', [])
+
+    if image_url in gallery:
+        gallery.remove(image_url)
+        db.update({'gallery': gallery}, doc_ids=[doc_id])
+
+        try:
+            file_path = image_url.replace("/static/", "static/")
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        except Exception as e:
+            print("❌ Error deleting file:", e)
 
     return redirect(url_for('profile'))
 
@@ -109,10 +143,9 @@ def chat():
                                                   timeout=30)
         reply = response.choices[0].message.content.strip()
 
-        end_triggers = [
-            "let’s find your best matches", "let's find your best matches"
-        ]
-        if any(trigger in reply.lower() for trigger in end_triggers):
+        if any(
+                trigger in reply.lower() for trigger in
+            ["let’s find your best matches", "let's find your best matches"]):
             user_answers = [
                 m['content'] for m in messages if m['role'] == 'user'
             ]
@@ -132,9 +165,9 @@ def chat():
 
             for key in ['traits', 'interests']:
                 if isinstance(profile.get(key), list):
-                    profile[key] = profile[key][:5]
+                    profile[key] = ', '.join(profile[key][:5])
 
-            for key in ['traits', 'goals', 'messaging', 'what_they_want']:
+            for key in ['goals', 'messaging', 'what_they_want']:
                 val = profile.get(key, "")
                 if isinstance(val, list):
                     val = ', '.join(val)
@@ -144,6 +177,7 @@ def chat():
             profile['location'] = "Not specified"
             profile['gender'] = "Not specified"
             profile['image_url'] = "Not specified"
+            profile['gallery'] = []
 
             db.insert(profile)
 
@@ -182,9 +216,7 @@ def extract_profile_from_text(user_text):
             temperature=0.3,
             max_tokens=300,
             timeout=30)
-        content = completion.choices[0].message.content.strip()
-        return json.loads(content)
-
+        return json.loads(completion.choices[0].message.content.strip())
     except Exception as e:
         print("❌ GPT profile extraction failed:", e)
         return {}

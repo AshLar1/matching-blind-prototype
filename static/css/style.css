@@ -136,6 +136,7 @@ body {
 
 .profile-card p {
   margin: 0.4rem 0;
+  white-space: pre-line;
 }
 
 .profile-card input[type="text"],
@@ -150,12 +151,46 @@ body {
 }
 
 .profile-pic {
-  width: 100%;
-  max-width: 180px;
-  border-radius: 10px;
-  margin: 10px auto;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  margin: 10px auto 20px;
   display: block;
+  object-fit: cover;
   box-shadow: 0 0 8px rgba(255,255,255,0.2);
+}
+
+/* Gallery */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
+  margin-top: 1rem;
+}
+
+.gallery-item {
+  position: relative;
+}
+
+.gallery-item img {
+  width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 0 5px rgba(255,255,255,0.2);
+}
+
+.remove-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: #ff3366;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 14px;
+  cursor: pointer;
+  line-height: 1;
 }
 
 /* Chat UI */
