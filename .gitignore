@@ -160,3 +160,5 @@ cython_debug/
 #.idea/
 
 .git-credentials
+data/X_all_users_with_user_id.csv
+models/shap_values_all_users.pkl
